@@ -8,61 +8,88 @@ from config import cfg
 
 TOTAL_TRAINING_IMAGES = 60000
 
-
-def load_data(batch_size, is_training=True):
+def load_mnist(batch_size, is_training=True):
+    path = os.path.join('data', 'mnist')
     if is_training:
-        data_file = os.path.join(cfg.affnist_data_dir,
-                                 'peppered_training_and_validation_batches',
-                                 cfg.centered + '_percent_centered_' + cfg.peppered + '_percent_transformed.mat')
-        
-        images_per_transformation = int((TOTAL_TRAINING_IMAGES * int(cfg.peppered)/100) / 32)
-        num_base_img = int(TOTAL_TRAINING_IMAGES * int(cfg.centered)/100)
-        num_inputs = images_per_transformation * 32 + num_base_img
+        fd = open(os.path.join(path, 'train-images-idx3-ubyte'))
+        loaded = np.fromfile(file=fd, dtype=np.uint8)
+        trainX = loaded[16:].reshape((60000, 28, 28, 1)).astype(np.float32)
 
-        num_training = num_inputs * 84/100
-        num_training_eval = num_inputs - num_training
+        fd = open(os.path.join(path, 'train-labels-idx1-ubyte'))
+        loaded = np.fromfile(file=fd, dtype=np.uint8)
+        trainY = loaded[8:].reshape((60000)).astype(np.int32)
 
-        # NOTE: Assert we have the correct number of total inputs, as expected
-        data = loadmat(data_file)
-        images = data['affNISTdata']['image'].transpose().reshape(num_inputs, 40, 40, 1).astype(np.float32)
-        labels = data['affNISTdata']['label_int'].astype(np.uint8)
-        assert images.shape == (num_inputs, 40, 40, 1)
-        assert labels.shape == (num_inputs,)
+        trX = trainX[:55000] / 255.
+        trY = trainY[:55000]
 
-        trX = images[:num_training] / 255.
-        trY = labels[:num_training]
+        valX = trainX[55000:, ] / 255.
+        valY = trainY[55000:]
 
-        valX = images[num_training_eval:, ] / 255.
-        valY = labels[num_training_eval:]
-
-        num_tr_batch = num_training // cfg.batch_size
-        num_val_batch = num_training_eval // cfg.batch_size
+        num_tr_batch = 55000 // batch_size
+        num_val_batch = 5000 // batch_size
 
         return trX, trY, num_tr_batch, valX, valY, num_val_batch
-
     else:
-        # NOTE: Swap those two lines below to get some basic transformed test
-        if cfg.peppered == '0':
-            data_file = os.path.join(cfg.affnist_data_dir, 'just_centered', 'test.mat')
-        else:
-            data_file = os.path.join(cfg.affnist_data_dir, 'transformed', 'test_batches', '15.mat')
+        fd = open(os.path.join(path, 't10k-images-idx3-ubyte'))
+        loaded = np.fromfile(file=fd, dtype=np.uint8)
+        teX = loaded[16:].reshape((10000, 28, 28, 1)).astype(np.float)
 
-        data = loadmat(data_file)
-        images = data['affNISTdata']['image'].transpose().reshape(10000, 40, 40, 1).astype(np.float32)
-        labels = data['affNISTdata']['label_int'].astype(np.float32)
-        assert images.shape == (10000, 40, 40, 1)
-        assert labels.shape == (10000,)
+        fd = open(os.path.join(path, 't10k-labels-idx1-ubyte'))
+        loaded = np.fromfile(file=fd, dtype=np.uint8)
+        teY = loaded[8:].reshape((10000)).astype(np.int32)
 
-        imgs = images / 255.
-        labs = labels
-        num_te_batch = 10000 // cfg.batch_size
-
-        return imgs, labs, num_te_batch
+        num_te_batch = 10000 // batch_size
+        return teX / 255., teY, num_te_batch
 
 
-def get_batch_data(batch_size, num_threads):
-    trX, trY, num_tr_batch, valX, valY, num_val_batch = load_data(batch_size, is_training=True)
+def load_fashion_mnist(batch_size, is_training=True):
+    path = os.path.join('data', 'fashion-mnist')
+    if is_training:
+        fd = open(os.path.join(path, 'train-images-idx3-ubyte'))
+        loaded = np.fromfile(file=fd, dtype=np.uint8)
+        trainX = loaded[16:].reshape((60000, 28, 28, 1)).astype(np.float32)
 
+        fd = open(os.path.join(path, 'train-labels-idx1-ubyte'))
+        loaded = np.fromfile(file=fd, dtype=np.uint8)
+        trainY = loaded[8:].reshape((60000)).astype(np.int32)
+
+        trX = trainX[:55000] / 255.
+        trY = trainY[:55000]
+
+        valX = trainX[55000:, ] / 255.
+        valY = trainY[55000:]
+
+        num_tr_batch = 55000 // batch_size
+        num_val_batch = 5000 // batch_size
+
+        return trX, trY, num_tr_batch, valX, valY, num_val_batch
+    else:
+        fd = open(os.path.join(path, 't10k-images-idx3-ubyte'))
+        loaded = np.fromfile(file=fd, dtype=np.uint8)
+        teX = loaded[16:].reshape((10000, 28, 28, 1)).astype(np.float)
+
+        fd = open(os.path.join(path, 't10k-labels-idx1-ubyte'))
+        loaded = np.fromfile(file=fd, dtype=np.uint8)
+        teY = loaded[8:].reshape((10000)).astype(np.int32)
+
+        num_te_batch = 10000 // batch_size
+        return teX / 255., teY, num_te_batch
+
+
+def load_data(dataset, batch_size, is_training=True, one_hot=False):
+    if dataset == 'mnist':
+        return load_mnist(batch_size, is_training)
+    elif dataset == 'fashion-mnist':
+        return load_fashion_mnist(batch_size, is_training)
+    else:
+        raise Exception('Invalid dataset, please check the name of dataset:', dataset)
+
+
+def get_batch_data(dataset, batch_size, num_threads):
+    if dataset == 'mnist':
+        trX, trY, num_tr_batch, valX, valY, num_val_batch = load_mnist(batch_size, is_training=True)
+    elif dataset == 'fashion-mnist':
+        trX, trY, num_tr_batch, valX, valY, num_val_batch = load_fashion_mnist(batch_size, is_training=True)
     data_queues = tf.train.slice_input_producer([trX, trY])
     X, Y = tf.train.shuffle_batch(data_queues, num_threads=num_threads,
                                   batch_size=batch_size,
@@ -71,5 +98,3 @@ def get_batch_data(batch_size, num_threads):
                                   allow_smaller_final_batch=False)
 
     return(X, Y)
-
-
