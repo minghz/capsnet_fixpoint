@@ -31,8 +31,6 @@ flags.DEFINE_string('checkpoint_dir', 'checkpoint_dir', 'Dir checkpoints are sav
 flags.DEFINE_integer('save_checkpoint_steps', 10, 'save checkpoint every #(steps)')
 
 flags.DEFINE_boolean('is_training', True, 'train or predict phase')
-flags.DEFINE_string('peppered', '0', 'affnist peppered with transformed images of such percentage')
-flags.DEFINE_string('centered', '2', 'affnist centered images, percent of 60k')
 flags.DEFINE_string('data_dir', './data', 'Dir for affnist data')
 flags.DEFINE_string('dataset', 'mnist', 'mnist OR fashion-mnist')
 
