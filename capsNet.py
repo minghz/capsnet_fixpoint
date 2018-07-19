@@ -155,7 +155,7 @@ class CapsNet(object):
         tf.summary.scalar('accuracy', self.accuracy / cfg.batch_size)
 
         # Reconstructed image
-        recon_img = tf.reshape(self.decoded, shape=(cfg.batch_size, 40, 40, 1))
+        recon_img = tf.reshape(self.decoded, shape=(cfg.batch_size, 28, 28, 1))
         tf.summary.image('reconstruction_img', recon_img)
 
         self.train_summary = tf.summary.merge_all()
