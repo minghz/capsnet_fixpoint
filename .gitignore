@@ -1,5 +1,5 @@
 checkpoint_dir/
 logdir/
-results/
+results*
 data/
 *.pyc
