@@ -1,9 +1,3 @@
-"""
-License: Apache-2.0
-Author: Huadong Liao
-E-mail: naturomics.liao@gmail.com
-"""
-
 import tensorflow as tf
 
 from config import cfg
@@ -32,7 +26,7 @@ class CapsNet(object):
             self.optimizer = tf.train.AdamOptimizer()
             self.train_op = self.optimizer.minimize(self.total_loss, global_step=self.global_step)  # var_list=t_vars)
         else:
-            self.X = tf.placeholder(tf.float32, shape=(cfg.batch_size, 40, 40, 1))
+            self.X = tf.placeholder(tf.float32, shape=(cfg.batch_size, 28, 28, 1))
             self.labels = tf.placeholder(tf.int32, shape=(cfg.batch_size, ))
             self.Y = tf.reshape(self.labels, shape=(cfg.batch_size, 10, 1))
             self.build_arch()
@@ -45,13 +39,13 @@ class CapsNet(object):
             self.conv1 = tf.contrib.layers.conv2d(self.X, num_outputs=256,
                                              kernel_size=9, stride=1,
                                              padding='VALID')
-            assert self.conv1.get_shape() == [cfg.batch_size, 32, 32, 256]
+            assert self.conv1.get_shape() == [cfg.batch_size, 20, 20, 256]
 
         # Primary Capsules layer, return [batch_size, 1152, 8, 1]
         with tf.variable_scope('PrimaryCaps_layer'):
-            self.primaryCaps = CapsLayer(num_outputs=10, vec_len=8, with_routing=False, layer_type='CONV')
+            self.primaryCaps = CapsLayer(num_outputs=32, vec_len=8, with_routing=False, layer_type='CONV')
             self.caps1 = self.primaryCaps(self.conv1, kernel_size=9, stride=2)
-            assert self.caps1.get_shape() == [cfg.batch_size, 1440, 8, 1]
+            assert self.caps1.get_shape() == [cfg.batch_size, 1152, 8, 1]
 
         # DigitCaps layer, return [batch_size, 10, 16, 1]
         with tf.variable_scope('DigitCaps_layer'):
@@ -100,7 +94,7 @@ class CapsNet(object):
             assert fc1.get_shape() == [cfg.batch_size, 512]
             fc2 = tf.contrib.layers.fully_connected(fc1, num_outputs=1024)
             assert fc2.get_shape() == [cfg.batch_size, 1024]
-            self.decoded = tf.contrib.layers.fully_connected(fc2, num_outputs=1600, activation_fn=tf.sigmoid)
+            self.decoded = tf.contrib.layers.fully_connected(fc2, num_outputs=784, activation_fn=tf.sigmoid)
 
     def loss(self):
         # 1. The margin loss

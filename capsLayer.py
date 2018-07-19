@@ -1,9 +1,3 @@
-"""
-License: Apache-2.0
-Author: Huadong Liao
-E-mail: naturomics.liao@gmail.com
-"""
-
 import numpy as np
 import tensorflow as tf
 
@@ -46,7 +40,7 @@ class CapsLayer(object):
             if not self.with_routing:
                 # the PrimaryCaps layer, a convolutional layer
                 # input: [batch_size, 20, 20, 256]
-                assert input.get_shape() == [cfg.batch_size, 32, 32, 256]
+                assert input.get_shape() == [cfg.batch_size, 20, 20, 256]
 
                 '''
                 # version 1, computational expensive
@@ -72,6 +66,7 @@ class CapsLayer(object):
                 capsules = tf.contrib.layers.conv2d(input, self.num_outputs * self.vec_len,
                                                     self.kernel_size, self.stride, padding="VALID",
                                                     activation_fn=tf.nn.relu)
+                assert capsules.get_shape() == [cfg.batch_size, 6, 6, 256]
                 # capsules = tf.contrib.layers.conv2d(input, self.num_outputs * self.vec_len,
                 #                                    self.kernel_size, self.stride,padding="VALID",
                 #                                    activation_fn=None)
@@ -79,7 +74,7 @@ class CapsLayer(object):
 
                 # [batch_size, 1152, 8, 1]
                 self.capsules = squash(self.unsquashed_capsules)
-                assert self.capsules.get_shape() == [cfg.batch_size, 1440, 8, 1]
+                assert self.capsules.get_shape() == [cfg.batch_size, 1152, 8, 1]
                 return(self.capsules)
 
         if self.layer_type == 'FC':
@@ -113,7 +108,7 @@ def routing(self, input, b_IJ):
      '''
 
     # W: [1, num_caps_i, num_caps_j * len_v_j, len_u_j, 1]
-    self.W = tf.get_variable('Weight', shape=(1, 1440, 160, 8, 1), dtype=tf.float32,
+    self.W = tf.get_variable('Weight', shape=(1, 1152, 160, 8, 1), dtype=tf.float32,
                         initializer=tf.random_normal_initializer(stddev=cfg.stddev))
     self.biases = tf.get_variable('bias', shape=(1, 1, 10, 16, 1))
 
@@ -124,11 +119,11 @@ def routing(self, input, b_IJ):
     # element-wise multiply [a*c, b] * [a*c, b], reduce_sum at axis=1 and
     # reshape to [a, c]
     input = tf.tile(input, [1, 1, 160, 1, 1])
-    assert input.get_shape() == [cfg.batch_size, 1440, 160, 8, 1]
+    assert input.get_shape() == [cfg.batch_size, 1152, 160, 8, 1]
 
     self.u_hat = reduce_sum(self.W * input, axis=3, keepdims=True)
-    self.u_hat = tf.reshape(self.u_hat, shape=[-1, 1440, 10, 16, 1])
-    assert self.u_hat.get_shape() == [cfg.batch_size, 1440, 10, 16, 1]
+    self.u_hat = tf.reshape(self.u_hat, shape=[-1, 1152, 10, 16, 1])
+    assert self.u_hat.get_shape() == [cfg.batch_size, 1152, 10, 16, 1]
 
     # In forward, u_hat_stopped = u_hat; in backward, no gradient passed back from u_hat_stopped to u_hat
     u_hat_stopped = tf.stop_gradient(self.u_hat, name='stop_gradient')
@@ -163,9 +158,9 @@ def routing(self, input, b_IJ):
                 # reshape & tile v_j from [batch_size ,1, 10, 16, 1] to [batch_size, 1152, 10, 16, 1]
                 # then matmul in the last tow dim: [16, 1].T x [16, 1] => [1, 1], reduce mean in the
                 # batch_size dim, resulting in [1, 1152, 10, 1, 1]
-                self.v_J_tiled = tf.tile(self.v_J, [1, 1440, 1, 1, 1])
+                self.v_J_tiled = tf.tile(self.v_J, [1, 1152, 1, 1, 1])
                 self.u_produce_v = reduce_sum(u_hat_stopped * self.v_J_tiled, axis=3, keepdims=True)
-                assert self.u_produce_v.get_shape() == [cfg.batch_size, 1440, 10, 1, 1]
+                assert self.u_produce_v.get_shape() == [cfg.batch_size, 1152, 10, 1, 1]
 
                 # b_IJ += tf.reduce_sum(self.u_produce_v, axis=0, keep_dims=True)
                 b_IJ += self.u_produce_v
