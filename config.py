@@ -34,6 +34,9 @@ flags.DEFINE_boolean('is_training', True, 'train or predict phase')
 flags.DEFINE_string('data_dir', './data', 'Dir for affnist data')
 flags.DEFINE_string('dataset', 'mnist', 'mnist OR fashion-mnist')
 
+flags.DEFINE_string('digit_bits', 1, 'mnist OR fashion-mnist')
+flags.DEFINE_string('fraction_bits', 6, 'mnist OR fashion-mnist')
+
 flags.DEFINE_string('logdir', 'logdir', 'logs directory')
 flags.DEFINE_integer('train_sum_freq', 5, 'the frequency of saving train summary(step)')
 flags.DEFINE_integer('val_sum_freq', 5, 'the frequency of saving valuation summary(step)')
