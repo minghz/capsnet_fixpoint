@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+from libs import fix
 from config import cfg
 from load_data import get_batch_data
 from utils import softmax
@@ -39,6 +40,7 @@ class CapsNet(object):
             self.conv1 = tf.contrib.layers.conv2d(self.X, num_outputs=256,
                                              kernel_size=9, stride=1,
                                              padding='VALID')
+            self.conv1 = fix(self.conv1)
             assert self.conv1.get_shape() == [cfg.batch_size, 20, 20, 256]
 
         # Primary Capsules layer, return [batch_size, 1152, 8, 1]

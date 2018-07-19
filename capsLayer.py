@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
+from libs import fix
 from config import cfg
 from utils import reduce_sum
 from utils import softmax
@@ -74,6 +75,7 @@ class CapsLayer(object):
 
                 # [batch_size, 1152, 8, 1]
                 self.capsules = squash(self.unsquashed_capsules)
+                self.capsules= fix(self.capsules)
                 assert self.capsules.get_shape() == [cfg.batch_size, 1152, 8, 1]
                 return(self.capsules)
 
@@ -123,6 +125,7 @@ def routing(self, input, b_IJ):
 
     self.u_hat = reduce_sum(self.W * input, axis=3, keepdims=True)
     self.u_hat = tf.reshape(self.u_hat, shape=[-1, 1152, 10, 16, 1])
+    self.u_hat = fix(self.u_hat)
     assert self.u_hat.get_shape() == [cfg.batch_size, 1152, 10, 16, 1]
 
     # In forward, u_hat_stopped = u_hat; in backward, no gradient passed back from u_hat_stopped to u_hat
@@ -143,11 +146,13 @@ def routing(self, input, b_IJ):
                 self.s_J = tf.multiply(self.c_IJ, self.u_hat)
                 # then sum in the second dim, resulting in [batch_size, 1, 10, 16, 1]
                 self.s_J = reduce_sum(self.s_J, axis=1, keepdims=True) + self.biases
+                self.s_J = fix(self.s_J)
                 assert self.s_J.get_shape() == [cfg.batch_size, 1, 10, 16, 1]
 
                 # line 6:
                 # squash using Eq.1,
                 self.v_J = squash(self.s_J)
+                self.v_J = fix(self.v_J)
                 assert self.v_J.get_shape() == [cfg.batch_size, 1, 10, 16, 1]
             elif r_iter < cfg.iter_routing - 1:  # Inner iterations, do not apply backpropagation
                 self.s_J = tf.multiply(self.c_IJ, u_hat_stopped)
@@ -160,6 +165,7 @@ def routing(self, input, b_IJ):
                 # batch_size dim, resulting in [1, 1152, 10, 1, 1]
                 self.v_J_tiled = tf.tile(self.v_J, [1, 1152, 1, 1, 1])
                 self.u_produce_v = reduce_sum(u_hat_stopped * self.v_J_tiled, axis=3, keepdims=True)
+                self.u_produce_v = fix(self.u_produce_v)
                 assert self.u_produce_v.get_shape() == [cfg.batch_size, 1152, 10, 1, 1]
 
                 # b_IJ += tf.reduce_sum(self.u_produce_v, axis=0, keep_dims=True)
