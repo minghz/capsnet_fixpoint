@@ -5,7 +5,11 @@ from config import cfg
 # Defining custom operations
 rf = tf.load_op_library('./custom_ops/fix_resolution.so')
 fix_resolution = rf.fix_resolution
-tf.NoGradient("FixResolution")
+# Gradient registration for out custom operation
+@ops.RegisterGradient("FixResolution")
+def _fix_grad(op, grad):
+  return rf.fix_grad(grad, op.inputs[0], op.inputs[1], op.inputs[2])
+
 
 
 def fix(x):

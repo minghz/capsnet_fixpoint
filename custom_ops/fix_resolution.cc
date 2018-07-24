@@ -72,4 +72,42 @@ class FixResolutionOp : public OpKernel {
     }
 };
 
+REGISTER_OP("FixResolution")
+  .Input("grad: float") //input tensor
+  .Input("to_fix: float") //input tensor
+  .Input("range_bits: int32") // range and precision bits (m, n)
+  .Input("precision_bits: int32") // range and precision bits (m, n)
+  .Output("fixed_grad: float")
+  .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
+      c->set_output(0, c->input(0));
+      return Status::OK();
+});
+
+class FixResolutionGradOp : public OpKernel {
+  public:
+    explicit FixResolutionGradOp(OpKernelConstruction* context) : OpKernel(context) {}
+
+    void Compute(OpKernelContext* context) override {
+      // Grab the input tensor
+      const Tensor& gradient = context->input(0);
+      auto input = gradient.flat<float>();
+
+      // Gradient output
+      Tensor* fixed_grad = NULL;
+      OP_REQUIRES_OK(
+          context,
+          context->allocate_output(0, gradient.shape(), &fixed_grad));
+      auto output = fixed_grad->flat<float>();
+
+      // For our gradient we are simply seting input = output
+      const int input_count = input.size();
+      for (int i = 0; i < input_count; i++) {
+
+        output(i) = input(i);
+
+      }
+    }
+};
+
 REGISTER_KERNEL_BUILDER(Name("FixResolution").Device(DEVICE_CPU), FixResolutionOp);
+REGISTER_KERNEL_BUILDER(Name("FixResolutionGrad").Device(DEVICE_CPU), FixResolutionGradOp);
