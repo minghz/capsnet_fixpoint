@@ -14,7 +14,7 @@ flags.DEFINE_float('lambda_val', 0.5, 'down weight of the loss for absent digit 
 
 # for training
 flags.DEFINE_integer('batch_size', 128, 'batch size')
-flags.DEFINE_integer('epoch', 20, 'epoch')
+flags.DEFINE_integer('epoch', 2, 'epoch')
 flags.DEFINE_integer('iter_routing', 3, 'number of iterations in routing algorithm')
 flags.DEFINE_boolean('mask_with_y', True, 'use the true label to mask out target capsule or not')
 
@@ -34,8 +34,8 @@ flags.DEFINE_boolean('is_training', True, 'train or predict phase')
 flags.DEFINE_string('data_dir', './data', 'Dir for affnist data')
 flags.DEFINE_string('dataset', 'mnist', 'mnist OR fashion-mnist')
 
-flags.DEFINE_integer('digit_bits', 1, 'number of digit bits for fix point')
-flags.DEFINE_integer('fraction_bits', 6, 'number of fraction bits for fix point')
+flags.DEFINE_integer('digit_bits', 10, 'number of digit bits for fix point')
+flags.DEFINE_integer('fraction_bits', 22, 'number of fraction bits for fix point')
 
 flags.DEFINE_string('logdir', 'logdir', 'logs directory')
 flags.DEFINE_integer('train_sum_freq', 5, 'the frequency of saving train summary(step)')
