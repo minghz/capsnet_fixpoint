@@ -78,6 +78,8 @@ REGISTER_OP("FixResolution")
   .Input("range_bits: int32") // range and precision bits (m, n)
   .Input("precision_bits: int32") // range and precision bits (m, n)
   .Output("fixed_grad: float")
+  .Output("range_bits_grad: int32") // range and precision bits (m, n)
+  .Output("precision_bits_grad: int32") // range and precision bits (m, n)
   .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
       c->set_output(0, c->input(0));
       return Status::OK();
@@ -92,12 +94,27 @@ class FixResolutionGradOp : public OpKernel {
       const Tensor& gradient = context->input(0);
       auto input = gradient.flat<float>();
 
+      const Tensor& range_bits = context->input(1);
+      const Tensor& precision_bits = context->input(2);
+
       // Gradient output
       Tensor* fixed_grad = NULL;
       OP_REQUIRES_OK(
           context,
           context->allocate_output(0, gradient.shape(), &fixed_grad));
       auto output = fixed_grad->flat<float>();
+
+      // Return None grad
+      Tensor* range_bits_grad = NULL;
+      OP_REQUIRES_OK(
+          context,
+          context->allocate_output(1, range_bits.shape(), &range_bits_grad));
+
+      // Return None grad
+      Tensor* precision_bits_grad = NULL;
+      OP_REQUIRES_OK(
+          context,
+          context->allocate_output(2, precision_bits.shape(), &precision_bits_grad));
 
       // For our gradient we are simply seting input = output
       const int input_count = input.size();
