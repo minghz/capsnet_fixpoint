@@ -1,14 +1,15 @@
 import tensorflow as tf
-from config import cfg
 
+from tensorflow.python.framework import ops
+from config import cfg
 
 # Defining custom operations
 rf = tf.load_op_library('./custom_ops/fix_resolution.so')
 fix_resolution = rf.fix_resolution
 # Gradient registration for out custom operation
 @ops.RegisterGradient("FixResolution")
-def _fix_grad(op, grad):
-  return rf.fix_grad(grad, op.inputs[0], op.inputs[1], op.inputs[2])
+def _fix_resolution_grad(op, grad):
+  return rf.fix_resolution_grad(grad, op.inputs[0], op.inputs[1], op.inputs[2])
 
 
 

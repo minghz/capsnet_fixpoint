@@ -72,7 +72,7 @@ class FixResolutionOp : public OpKernel {
     }
 };
 
-REGISTER_OP("FixResolution")
+REGISTER_OP("FixResolutionGrad")
   .Input("grad: float") //input tensor
   .Input("to_fix: float") //input tensor
   .Input("range_bits: int32") // range and precision bits (m, n)

@@ -44,10 +44,10 @@ def save_to():
 
 def prepare_output_dir():
     if os.path.exists(cfg.results):
-        os.rename(cfg.results, cfg.results + datetime.now().isoformat())
+        os.rename(cfg.results, cfg.results + str(cfg.digit_bits) + '_digit_' + str(cfg.fraction_bits) + '_fraction')
 
     if os.path.exists(cfg.checkpoint_dir):
-        shutil.rmtree(cfg.checkpoint_dir, cfg.checkpoint_dir + datetime.now().isoformat())
+        shutil.rmtree(cfg.checkpoint_dir)
 
     if os.path.exists(cfg.logdir):
         shutil.rmtree(cfg.logdir)
