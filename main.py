@@ -11,6 +11,7 @@ from load_data import load_data
 from capsNet import CapsNet
 
 RESULTS_DIR = cfg.results + '_' + str(cfg.digit_bits) + '_digit_' + str(cfg.fraction_bits) + '_fraction'
+LOG_DIR = cfg.logdir + '_' + str(cfg.digit_bits) + '_digit_' + str(cfg.fraction_bits) + '_fraction'
 
 def save_to():
     if not os.path.exists(RESULTS_DIR):
@@ -50,8 +51,8 @@ def prepare_output_dir():
     if os.path.exists(cfg.checkpoint_dir):
         shutil.rmtree(cfg.checkpoint_dir, cfg.checkpoint_dir + datetime.now().isoformat())
 
-    if os.path.exists(cfg.logdir):
-        shutil.rmtree(cfg.logdir)
+    if os.path.exists(LOG_DIR):
+        os.rename(LOG_DIR, LOG_DIR + datetime.now().isoformat())
 
 
 def train(model, session):
@@ -142,7 +143,7 @@ def main(_):
                                                     save_steps=cfg.save_checkpoint_steps,
                                                     saver=saver),
                        tf.train.SummarySaverHook(save_steps=cfg.train_sum_freq,
-                                                 output_dir=cfg.logdir,
+                                                 output_dir=LOG_DIR,
                                                  summary_op=model.train_summary)],
             )
             train(model, session)
