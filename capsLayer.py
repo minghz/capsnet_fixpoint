@@ -138,7 +138,9 @@ def routing(self, input, b_IJ):
         with tf.variable_scope('iter_' + str(r_iter)):
             # line 4:
             # => [batch_size, 1152, 10, 1, 1]
+            self.b_IJ = fix(b_IJ)
             self.c_IJ = softmax(b_IJ, axis=2)
+            self.c_IJ = fix(self.c_IJ)
 
             # At last iteration, use `u_hat` in order to receive gradients from the following graph
             if r_iter == cfg.iter_routing - 1:
@@ -160,6 +162,7 @@ def routing(self, input, b_IJ):
                 self.s_J = tf.multiply(self.c_IJ, u_hat_stopped)
                 self.s_J = reduce_sum(self.s_J, axis=1, keepdims=True) + self.biases
                 self.v_J = squash(self.s_J)
+                self.v_J = fix(self.v_J)
 
                 # line 7:
                 # reshape & tile v_j from [batch_size ,1, 10, 16, 1] to [batch_size, 1152, 10, 16, 1]
