@@ -88,15 +88,21 @@ class CapsNet(object):
                 self.masked_v = tf.multiply(tf.squeeze(self.caps2), tf.reshape(self.Y, (-1, 10, 1)))
                 self.v_length = tf.sqrt(reduce_sum(tf.square(self.caps2), axis=2, keepdims=True) + epsilon)
 
+        self.masked_v = fix(self.masked_v)
+        self.v_length = fix(self.v_length)
+
         # 2. Reconstructe the MNIST images with 3 FC layers
         # [batch_size, 1, 16, 1] => [batch_size, 16] => [batch_size, 512]
         with tf.variable_scope('Decoder'):
             vector_j = tf.reshape(self.masked_v, shape=(cfg.batch_size, -1))
-            fc1 = tf.contrib.layers.fully_connected(vector_j, num_outputs=512)
-            assert fc1.get_shape() == [cfg.batch_size, 512]
-            fc2 = tf.contrib.layers.fully_connected(fc1, num_outputs=1024)
-            assert fc2.get_shape() == [cfg.batch_size, 1024]
-            self.decoded = tf.contrib.layers.fully_connected(fc2, num_outputs=784, activation_fn=tf.sigmoid)
+            self.fc1 = tf.contrib.layers.fully_connected(vector_j, num_outputs=512)
+            self.fc1 = fix(self.fc1)
+            assert self.fc1.get_shape() == [cfg.batch_size, 512]
+            self.fc2 = tf.contrib.layers.fully_connected(self.fc1, num_outputs=1024)
+            self.fc2 = fix(self.fc2)
+            assert self.fc2.get_shape() == [cfg.batch_size, 1024]
+            self.decoded = tf.contrib.layers.fully_connected(self.fc2, num_outputs=784, activation_fn=tf.sigmoid)
+            self.decoded = fix(self.decoded)
 
     def loss(self):
         # 1. The margin loss
@@ -145,11 +151,19 @@ class CapsNet(object):
         tf.summary.histogram('DigitCaps_layer/W', self.digitCaps.W)
         tf.summary.histogram('DigitCaps_layer/biases', self.digitCaps.biases)
         tf.summary.histogram('DigitCaps_layer/u_hat', self.digitCaps.u_hat)
+        tf.summary.histogram('DigitCaps_layer/b_IJ', self.digitCaps.b_IJ)
         tf.summary.histogram('DigitCaps_layer/c_IJ', self.digitCaps.c_IJ)
         tf.summary.histogram('DigitCaps_layer/s_J', self.digitCaps.s_J)
         tf.summary.histogram('DigitCaps_layer/v_J', self.digitCaps.v_J)
         tf.summary.histogram('DigitCaps_layer/u_produce_v', self.digitCaps.u_produce_v)
         tf.summary.histogram('DigitCaps_layer/capsules', self.digitCaps.capsules)
+
+        tf.summary.histogram('Masking/masked_v', self.masked_v)
+        tf.summary.histogram('Masking/v_length', self.v_length)
+
+        tf.summary.histogram('Decoder/fc1', self.fc1)
+        tf.summary.histogram('Decoder/fc2', self.fc2)
+        tf.summary.histogram('Decoder/decoded', self.decoded)
 
         tf.summary.scalar('margin_loss', self.margin_loss)
         tf.summary.scalar('reconstruction_loss', self.reconstruction_err)
