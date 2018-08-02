@@ -37,10 +37,16 @@ class CapsNet(object):
     def build_arch(self):
         with tf.variable_scope('Conv1_layer'):
             # Conv1, [batch_size, 20, 20, 256]
-            self.conv1 = tf.contrib.layers.conv2d(self.X, num_outputs=256,
-                                             kernel_size=9, stride=1,
-                                             padding='VALID')
+            self.W = tf.get_variable('W', shape=[9, 9, 1, 256], initializer=tf.contrib.layers.xavier_initializer())
+            self.W = fix(self.W)
+            self.biases = tf.get_variable('biases', shape=[256], initializer=tf.zeros_initializer())
+            self.biases = fix(self.biases)
+
+            self.conv1 = tf.nn.relu(
+                    tf.nn.conv2d(self.X, self.W, strides=[1, 1, 1, 1], padding='VALID') + self.biases
+                    )
             self.conv1 = fix(self.conv1)
+
             assert self.conv1.get_shape() == [cfg.batch_size, 20, 20, 256]
 
         # Primary Capsules layer, return [batch_size, 1152, 8, 1]
@@ -138,7 +144,12 @@ class CapsNet(object):
         The reason all the sumaries are defined and merged here is because
         the _summary method is not called every step, so this is more efficient
         '''
+
+        # Variables converted to fixed point
+        tf.summary.histogram('Conv1_layer/W', self.W)
+        tf.summary.histogram('Conv1_layer/biases', self.biases)
         tf.summary.histogram('Conv1_layer/conv1', self.conv1)
+
         tf.summary.histogram('PrimaryCaps_layer/unsquashed_capsules', self.primaryCaps.unsquashed_capsules)
         tf.summary.histogram('PrimaryCaps_layer/capsules', self.primaryCaps.capsules)
 
@@ -152,6 +163,7 @@ class CapsNet(object):
         tf.summary.histogram('DigitCaps_layer/u_produce_v', self.digitCaps.u_produce_v)
         tf.summary.histogram('DigitCaps_layer/capsules', self.digitCaps.capsules)
 
+        # Reconstruction as Regularization variables are not converted to fix point
         tf.summary.histogram('Masking/masked_v', self.masked_v)
         tf.summary.histogram('Masking/v_length', self.v_length)
 
