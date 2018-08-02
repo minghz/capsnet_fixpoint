@@ -88,21 +88,15 @@ class CapsNet(object):
                 self.masked_v = tf.multiply(tf.squeeze(self.caps2), tf.reshape(self.Y, (-1, 10, 1)))
                 self.v_length = tf.sqrt(reduce_sum(tf.square(self.caps2), axis=2, keepdims=True) + epsilon)
 
-        self.masked_v = fix(self.masked_v)
-        self.v_length = fix(self.v_length)
-
         # 2. Reconstructe the MNIST images with 3 FC layers
         # [batch_size, 1, 16, 1] => [batch_size, 16] => [batch_size, 512]
         with tf.variable_scope('Decoder'):
             vector_j = tf.reshape(self.masked_v, shape=(cfg.batch_size, -1))
             self.fc1 = tf.contrib.layers.fully_connected(vector_j, num_outputs=512)
-            self.fc1 = fix(self.fc1)
             assert self.fc1.get_shape() == [cfg.batch_size, 512]
             self.fc2 = tf.contrib.layers.fully_connected(self.fc1, num_outputs=1024)
-            self.fc2 = fix(self.fc2)
             assert self.fc2.get_shape() == [cfg.batch_size, 1024]
             self.decoded = tf.contrib.layers.fully_connected(self.fc2, num_outputs=784, activation_fn=tf.sigmoid)
-            self.decoded = fix(self.decoded)
 
     def loss(self):
         # 1. The margin loss
