@@ -76,6 +76,7 @@ class CapsLayer(object):
                 # [batch_size, 1152, 8, 1]
                 self.unsquashed_capsules = fix(self.unsquashed_capsules)
                 self.capsules = squash(self.unsquashed_capsules)
+                self.capsules = fix(self.capsules)
                 assert self.capsules.get_shape() == [cfg.batch_size, 1152, 8, 1]
                 return(self.capsules)
 
