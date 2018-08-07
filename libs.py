@@ -3,43 +3,38 @@ import tensorflow as tf
 from tensorflow.python.framework import ops
 from config import cfg
 
-# Defining custom operations
-rf = tf.load_op_library('./custom_ops/fix_resolution.so')
-fix_resolution = rf.fix_resolution
-# Gradient registration for out custom operation
-@ops.RegisterGradient("FixResolution")
-def _fix_resolution_grad(op, grad):
-    return rf.fix_resolution_grad(grad, op.inputs[0], op.inputs[1], op.inputs[2])
+# Flooring resolution - custom OP
+rf = tf.load_op_library('./custom_ops/floor_resolution.so')
+floor_resolution = rf.floor_resolution
+@ops.RegisterGradient("FloorResolution")
+def _floor_resolution_grad(op, grad):
+    return rf.floor_resolution_grad(grad, op.inputs[0], op.inputs[1], op.inputs[2])
 
+
+# Nearest resolution - custom OP
+rf = tf.load_op_library('./custom_ops/nearest_resolution.so')
+nearest_resolution = rf.nearest_resolution
+# Gradient registration for out custom operation
+@ops.RegisterGradient("NearestResolution")
+def _nearest_resolution_grad(op, grad):
+    return rf.nearest_resolution_grad(grad, op.inputs[0], op.inputs[1], op.inputs[2])
+
+
+# Stochastic resolution - custom OP
+rf = tf.load_op_library('./custom_ops/stochastic_resolution.so')
+stochastic_resolution = rf.stochastic_resolution
+# Gradient registration for out custom operation
+@ops.RegisterGradient("StochasticResolution")
+def _stochastic_resolution_grad(op, grad):
+    return rf.stochastic_resolution_grad(grad, op.inputs[0], op.inputs[1], op.inputs[2])
 
 
 def fix(x):
-    return fix_resolution(x, cfg.digit_bits, cfg.fraction_bits)
-
-#def conv_layer(input,
-#        in_channels,
-#        num_outputs,
-#        kernel_size,
-#        stride,
-#        padding,
-#        act=tf.nn.relu):
-#
-#    W = tf.get_variable(
-#            'W',
-#            initializer=tf.truncated_normal(
-#                [kernel_size, kernel_size, in_channels, num_outputs],
-#                stddev=0.1)
-#            )
-#
-#    conv = act(tf.nn.conv2d(
-#        input,
-#        W,
-#        strides=[1, stride, stride, 1], padding=padding)
-#        )
-#
-#    conv = fix(conv)
-#
-#    tf.summary.histogram('W', W)
-#    tf.summary.histogram('conv', conv)
-#
-#    return conv
+    if cfg.fix_method == 'floor':
+        return floor_resolution(x, cfg.digit_bits, cfg.fraction_bits)
+    elif cfg.fix_method == 'nearest':
+        return nearest_resolution(x, cfg.digit_bits, cfg.fraction_bits)
+    elif cfg.fix_metod == 'stochastic':
+        return stochastic_resolution(x, cfg.digit_bits, cfg.fraction_bits)
+    else:
+        return false

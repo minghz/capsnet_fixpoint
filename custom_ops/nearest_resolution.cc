@@ -5,19 +5,19 @@
 
 using namespace tensorflow;
 
-REGISTER_OP("FixResolution")
-.Input("to_fix: float") //input tensor
+REGISTER_OP("NearestResolution")
+.Input("to_nearest: float") //input tensor
 .Input("range_bits: int32") // range and precision bits (m, n)
 .Input("precision_bits: int32") // range and precision bits (m, n)
-.Output("fixed: float")
+.Output("nearested: float")
 .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
     c->set_output(0, c->input(0));
     return Status::OK();
 });
 
-class FixResolutionOp : public OpKernel {
+class NearestResolutionOp : public OpKernel {
   public:
-    explicit FixResolutionOp(OpKernelConstruction* context) : OpKernel(context) {}
+    explicit NearestResolutionOp(OpKernelConstruction* context) : OpKernel(context) {}
 
     void Compute(OpKernelContext* context) override {
       // Grab the input tensor
@@ -28,17 +28,11 @@ class FixResolutionOp : public OpKernel {
       auto input = input_tensor.flat<float>();
       auto m = range_bits.flat<int>();
       auto n = precision_bits.flat<int>();
-      //std::cout << "m0: " << m(0) << std::endl;
-      //std::cout << "n0: " << n(0) << std::endl;
      
       float range = pow(2, (m(0) - 1));
       float resolution = pow(2, -1 * n(0));
       float range_min = -1 * range;
       float range_max = range - resolution;
-
-      //std::cout << "range: [" << range_min << ", " << range_max << "]"
-      //  << " | resolution: " << resolution
-      //  << std::endl;
 
       // Create an output tensor
       Tensor* output_tensor = NULL;
@@ -47,9 +41,7 @@ class FixResolutionOp : public OpKernel {
           context->allocate_output(0, input_tensor.shape(), &output_tensor));
       auto output = output_tensor->flat<float>();
 
-      // convert input tensor to fixed point equivalent range
-      // and precision with a 5% resolution tolerance
-      // counts times when range is clipped, or tolerance exceeded
+      // convert input tensor to nearested point equivalent range
       const int input_count = input.size();
       for (int i = 0; i < input_count; i++) {
 
@@ -58,26 +50,21 @@ class FixResolutionOp : public OpKernel {
           if (input(i) > range_max) { output(i) = range_max; }
           if (input(i) < range_min) { output(i) = range_min; }
 
-        // convert resolution to fixed point equivalent
+        // convert resolution to nearested point equivalent
         } else {
-          float fix_equivalent = resolution * trunc(input(i) / resolution);
-          float deviation_from_orig = abs(fix_equivalent - input(i)) / abs(input(i));
-          output(i) = fix_equivalent;
-          if(deviation_from_orig > 0.05){ // more than 5% deviation
-          }
+          float nearest_equivalent = resolution * round(input(i) / resolution);
+          output(i) = nearest_equivalent;
         }
       }
-      //std::cout << "%over: " << accuracy(0)
-      //  << " %under: " << accuracy(1) << std::endl;
     }
 };
 
-REGISTER_OP("FixResolutionGrad")
+REGISTER_OP("NearestResolutionGrad")
   .Input("grad: float") //input tensor
-  .Input("to_fix: float") //input tensor
+  .Input("to_nearest: float") //input tensor
   .Input("range_bits: int32") // range and precision bits (m, n)
   .Input("precision_bits: int32") // range and precision bits (m, n)
-  .Output("fixed_grad: float")
+  .Output("nearested_grad: float")
   .Output("range_bits_grad: int32") // range and precision bits (m, n)
   .Output("precision_bits_grad: int32") // range and precision bits (m, n)
   .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
@@ -85,9 +72,9 @@ REGISTER_OP("FixResolutionGrad")
       return Status::OK();
 });
 
-class FixResolutionGradOp : public OpKernel {
+class NearestResolutionGradOp : public OpKernel {
   public:
-    explicit FixResolutionGradOp(OpKernelConstruction* context) : OpKernel(context) {}
+    explicit NearestResolutionGradOp(OpKernelConstruction* context) : OpKernel(context) {}
 
     void Compute(OpKernelContext* context) override {
       // Grab the input tensor
@@ -98,11 +85,11 @@ class FixResolutionGradOp : public OpKernel {
       const Tensor& precision_bits = context->input(2);
 
       // Gradient output
-      Tensor* fixed_grad = NULL;
+      Tensor* nearested_grad = NULL;
       OP_REQUIRES_OK(
           context,
-          context->allocate_output(0, gradient.shape(), &fixed_grad));
-      auto output = fixed_grad->flat<float>();
+          context->allocate_output(0, gradient.shape(), &nearested_grad));
+      auto output = nearested_grad->flat<float>();
 
       // Return None grad
       Tensor* range_bits_grad = NULL;
@@ -126,5 +113,5 @@ class FixResolutionGradOp : public OpKernel {
     }
 };
 
-REGISTER_KERNEL_BUILDER(Name("FixResolution").Device(DEVICE_CPU), FixResolutionOp);
-REGISTER_KERNEL_BUILDER(Name("FixResolutionGrad").Device(DEVICE_CPU), FixResolutionGradOp);
+REGISTER_KERNEL_BUILDER(Name("NearestResolution").Device(DEVICE_CPU), NearestResolutionOp);
+REGISTER_KERNEL_BUILDER(Name("NearestResolutionGrad").Device(DEVICE_CPU), NearestResolutionGradOp);

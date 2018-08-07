@@ -34,6 +34,7 @@ flags.DEFINE_boolean('is_training', True, 'train or predict phase')
 flags.DEFINE_string('data_dir', './data', 'Dir for affnist data')
 flags.DEFINE_string('dataset', 'mnist', 'mnist OR fashion-mnist')
 
+flags.DEFINE_string('fix_method', 'floor', '[floor | nearest | stochastic]')
 flags.DEFINE_integer('digit_bits', 10, 'number of digit bits for fix point')
 flags.DEFINE_integer('fraction_bits', 22, 'number of fraction bits for fix point')
 
