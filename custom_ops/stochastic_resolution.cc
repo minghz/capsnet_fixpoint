@@ -22,7 +22,7 @@ class StochasticResolutionOp : public OpKernel {
     // Stochastically round a number
     // ie. 1.6 rounds to 1 with 0.4 probability
     //                   2 with 0.6 probability
-    float rstoc(x) {
+    float rstoc(float x) {
       float decimal = abs(x - trunc(x));
 
       float random_selector = (float)rand() / RAND_MAX;
