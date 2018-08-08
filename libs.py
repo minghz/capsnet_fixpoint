@@ -34,7 +34,7 @@ def fix(x):
         return floor_resolution(x, cfg.digit_bits, cfg.fraction_bits)
     elif cfg.fix_method == 'nearest':
         return nearest_resolution(x, cfg.digit_bits, cfg.fraction_bits)
-    elif cfg.fix_metod == 'stochastic':
+    elif cfg.fix_method == 'stochastic':
         return stochastic_resolution(x, cfg.digit_bits, cfg.fraction_bits)
     else:
         return false
