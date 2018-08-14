@@ -3,12 +3,12 @@ import tensorflow as tf
 from tensorflow.python.framework import ops
 from config import cfg
 
-# Flooring resolution - custom OP
-fr = tf.load_op_library('./custom_ops/trunc_resolution.so')
-trunc_resolution = fr.trunc_resolution
-@ops.RegisterGradient("FloorResolution")
+# Truncating resolution - custom OP
+tr = tf.load_op_library('./custom_ops/trunc_resolution.so')
+trunc_resolution = tr.trunc_resolution
+@ops.RegisterGradient("TruncResolution")
 def _trunc_resolution_grad(op, grad):
-    return fr.trunc_resolution_grad(grad, op.inputs[0], op.inputs[1], op.inputs[2])
+    return tr.trunc_resolution_grad(grad, op.inputs[0], op.inputs[1], op.inputs[2])
 
 
 # Nearest resolution - custom OP
