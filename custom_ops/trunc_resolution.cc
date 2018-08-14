@@ -5,19 +5,19 @@
 
 using namespace tensorflow;
 
-REGISTER_OP("FloorResolution")
-.Input("to_floor: float") //input tensor
+REGISTER_OP("TruncResolution")
+.Input("to_trunc: float") //input tensor
 .Input("range_bits: int32") // range and precision bits (m, n)
 .Input("precision_bits: int32") // range and precision bits (m, n)
-.Output("floored: float")
+.Output("trunced: float")
 .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
     c->set_output(0, c->input(0));
     return Status::OK();
 });
 
-class FloorResolutionOp : public OpKernel {
+class TruncResolutionOp : public OpKernel {
   public:
-    explicit FloorResolutionOp(OpKernelConstruction* context) : OpKernel(context) {}
+    explicit TruncResolutionOp(OpKernelConstruction* context) : OpKernel(context) {}
 
     void Compute(OpKernelContext* context) override {
       // Grab the input tensor
@@ -47,7 +47,7 @@ class FloorResolutionOp : public OpKernel {
           context->allocate_output(0, input_tensor.shape(), &output_tensor));
       auto output = output_tensor->flat<float>();
 
-      // convert input tensor to floored point equivalent range
+      // convert input tensor to trunced point equivalent range
       // and precision with a 5% resolution tolerance
       const int input_count = input.size();
       for (int i = 0; i < input_count; i++) {
@@ -57,11 +57,11 @@ class FloorResolutionOp : public OpKernel {
           if (input(i) > range_max) { output(i) = range_max; }
           if (input(i) < range_min) { output(i) = range_min; }
 
-        // convert resolution to floored point equivalent
+        // convert resolution to trunced point equivalent
         } else {
-          float floor_equivalent = resolution * floor(input(i) / resolution);
-          //float deviation_from_orig = abs(floor_equivalent - input(i)) / abs(input(i));
-          output(i) = floor_equivalent;
+          float trunc_equivalent = resolution * trunc(input(i) / resolution);
+          //float deviation_from_orig = abs(trunc_equivalent - input(i)) / abs(input(i));
+          output(i) = trunc_equivalent;
           //if(deviation_from_orig > 0.05) { // more than 5% deviation
           //}
         }
@@ -71,12 +71,12 @@ class FloorResolutionOp : public OpKernel {
     }
 };
 
-REGISTER_OP("FloorResolutionGrad")
+REGISTER_OP("TruncResolutionGrad")
   .Input("grad: float") //input tensor
-  .Input("to_floor: float") //input tensor
+  .Input("to_trunc: float") //input tensor
   .Input("range_bits: int32") // range and precision bits (m, n)
   .Input("precision_bits: int32") // range and precision bits (m, n)
-  .Output("floored_grad: float")
+  .Output("trunced_grad: float")
   .Output("range_bits_grad: int32") // range and precision bits (m, n)
   .Output("precision_bits_grad: int32") // range and precision bits (m, n)
   .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c) {
@@ -84,9 +84,9 @@ REGISTER_OP("FloorResolutionGrad")
       return Status::OK();
 });
 
-class FloorResolutionGradOp : public OpKernel {
+class TruncResolutionGradOp : public OpKernel {
   public:
-    explicit FloorResolutionGradOp(OpKernelConstruction* context) : OpKernel(context) {}
+    explicit TruncResolutionGradOp(OpKernelConstruction* context) : OpKernel(context) {}
 
     void Compute(OpKernelContext* context) override {
       // Grab the input tensor
@@ -97,11 +97,11 @@ class FloorResolutionGradOp : public OpKernel {
       const Tensor& precision_bits = context->input(2);
 
       // Gradient output
-      Tensor* floored_grad = NULL;
+      Tensor* trunced_grad = NULL;
       OP_REQUIRES_OK(
           context,
-          context->allocate_output(0, gradient.shape(), &floored_grad));
-      auto output = floored_grad->flat<float>();
+          context->allocate_output(0, gradient.shape(), &trunced_grad));
+      auto output = trunced_grad->flat<float>();
 
       // Return None grad
       Tensor* range_bits_grad = NULL;
@@ -125,5 +125,5 @@ class FloorResolutionGradOp : public OpKernel {
     }
 };
 
-REGISTER_KERNEL_BUILDER(Name("FloorResolution").Device(DEVICE_CPU), FloorResolutionOp);
-REGISTER_KERNEL_BUILDER(Name("FloorResolutionGrad").Device(DEVICE_CPU), FloorResolutionGradOp);
+REGISTER_KERNEL_BUILDER(Name("TruncResolution").Device(DEVICE_CPU), TruncResolutionOp);
+REGISTER_KERNEL_BUILDER(Name("TruncResolutionGrad").Device(DEVICE_CPU), TruncResolutionGradOp);
