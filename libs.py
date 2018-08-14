@@ -4,11 +4,11 @@ from tensorflow.python.framework import ops
 from config import cfg
 
 # Flooring resolution - custom OP
-fr = tf.load_op_library('./custom_ops/floor_resolution.so')
-floor_resolution = fr.floor_resolution
+fr = tf.load_op_library('./custom_ops/trunc_resolution.so')
+trunc_resolution = fr.trunc_resolution
 @ops.RegisterGradient("FloorResolution")
-def _floor_resolution_grad(op, grad):
-    return fr.floor_resolution_grad(grad, op.inputs[0], op.inputs[1], op.inputs[2])
+def _trunc_resolution_grad(op, grad):
+    return fr.trunc_resolution_grad(grad, op.inputs[0], op.inputs[1], op.inputs[2])
 
 
 # Nearest resolution - custom OP
@@ -30,8 +30,8 @@ def _stochastic_resolution_grad(op, grad):
 
 
 def fix(x):
-    if cfg.fix_method == 'floor':
-        return floor_resolution(x, cfg.digit_bits, cfg.fraction_bits)
+    if cfg.fix_method == 'trunc':
+        return trunc_resolution(x, cfg.digit_bits, cfg.fraction_bits)
     elif cfg.fix_method == 'nearest':
         return nearest_resolution(x, cfg.digit_bits, cfg.fraction_bits)
     elif cfg.fix_method == 'stochastic':
