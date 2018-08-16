@@ -10,8 +10,9 @@ from config import cfg
 from load_data import load_data
 from capsNet import CapsNet
 
-RESULTS_DIR = cfg.results + '_' + str(cfg.digit_bits) + '_digit_' + str(cfg.fraction_bits) + '_fraction'
-LOG_DIR = cfg.logdir + '_' + str(cfg.digit_bits) + '_digit_' + str(cfg.fraction_bits) + '_fraction'
+name_appendage = '_d' + str(cfg.digit_bits) + '_f' + str(cfg.fraction_bits) + '_ss_d' + str(cfg.ss_digit_bits) + '_f' + str(cfg.ss_fraction_bits)
+RESULTS_DIR = cfg.results + name_appendage
+LOG_DIR = cfg.logdir + name_appendage
 
 def save_to():
     if not os.path.exists(RESULTS_DIR):
