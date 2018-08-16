@@ -76,7 +76,7 @@ class CapsLayer(object):
                 # [batch_size, 1152, 8, 1]
                 self.unsquashed_capsules = fix(self.unsquashed_capsules)
                 self.capsules = squash(self.unsquashed_capsules)
-                self.capsules = fix(self.capsules)
+                self.capsules = fix(self.capsules, ss=True)
                 assert self.capsules.get_shape() == [cfg.batch_size, 1152, 8, 1]
                 return(self.capsules)
 
@@ -141,7 +141,7 @@ def routing(self, input, b_IJ):
             # => [batch_size, 1152, 10, 1, 1]
             self.b_IJ = fix(b_IJ)
             self.c_IJ = softmax(b_IJ, axis=2)
-            self.c_IJ = fix(self.c_IJ)
+            self.c_IJ = fix(self.c_IJ, ss=True)
 
             # At last iteration, use `u_hat` in order to receive gradients from the following graph
             if r_iter == cfg.iter_routing - 1:
@@ -157,13 +157,13 @@ def routing(self, input, b_IJ):
                 # line 6:
                 # squash using Eq.1,
                 self.v_J = squash(self.s_J)
-                self.v_J = fix(self.v_J)
+                self.v_J = fix(self.v_J, ss=True)
                 assert self.v_J.get_shape() == [cfg.batch_size, 1, 10, 16, 1]
             elif r_iter < cfg.iter_routing - 1:  # Inner iterations, do not apply backpropagation
                 self.s_J = tf.multiply(self.c_IJ, u_hat_stopped)
                 self.s_J = reduce_sum(self.s_J, axis=1, keepdims=True) + self.biases
                 self.v_J = squash(self.s_J)
-                self.v_J = fix(self.v_J)
+                self.v_J = fix(self.v_J, ss=True)
 
                 # line 7:
                 # reshape & tile v_j from [batch_size ,1, 10, 16, 1] to [batch_size, 1152, 10, 16, 1]

@@ -21,7 +21,6 @@ flags.DEFINE_boolean('mask_with_y', True, 'use the true label to mask out target
 flags.DEFINE_float('stddev', 0.01, 'stddev for W initializer')
 flags.DEFINE_float('regularization_scale', 0.392, 'regularization coefficient for reconstruction loss, default to 0.0005*784=0.392')
 
-
 ############################
 #   environment setting    #
 ############################
@@ -34,10 +33,18 @@ flags.DEFINE_boolean('is_training', True, 'train or predict phase')
 flags.DEFINE_string('data_dir', './data', 'Dir for affnist data')
 flags.DEFINE_string('dataset', 'mnist', 'mnist OR fashion-mnist')
 
+#
+# Fix point rounding and bit decimal point definition
+#
 flags.DEFINE_string('fix_method', 'trunc', '[trunc | nearest | stochastic]')
-flags.DEFINE_integer('digit_bits', 10, 'number of digit bits for fix point')
-flags.DEFINE_integer('fraction_bits', 22, 'number of fraction bits for fix point')
+# fix point definition after squash and softmax
+flags.DEFINE_integer('ss_digit_bits', 1, 'ss number of digit bits for fix point')
+flags.DEFINE_integer('ss_fraction_bits', 10, 'ss number of fraction bits for fix point')
+# fix point definition elsewhere
+flags.DEFINE_integer('digit_bits', 8, 'number of digit bits for fix point')
+flags.DEFINE_integer('fraction_bits', 8, 'number of fraction bits for fix point')
 
+# Output parameters
 flags.DEFINE_string('logdir', 'logdir', 'logs directory')
 flags.DEFINE_integer('train_sum_freq', 5, 'the frequency of saving train summary(step)')
 flags.DEFINE_integer('val_sum_freq', 5, 'the frequency of saving valuation summary(step)')

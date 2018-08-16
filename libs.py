@@ -29,12 +29,19 @@ def _stochastic_resolution_grad(op, grad):
     return sr.stochastic_resolution_grad(grad, op.inputs[0], op.inputs[1], op.inputs[2])
 
 
-def fix(x):
+def fix(x, ss=False):
+    if ss:
+        digit_bits = cfg.ss_digit_bits
+        fraction_bits = cfg.ss_fraction_bits
+    else:
+        digit_bits = cfg.digit_bits
+        fraction_bits = cfg.fraction_bits
+
     if cfg.fix_method == 'trunc':
-        return trunc_resolution(x, cfg.digit_bits, cfg.fraction_bits)
+        return trunc_resolution(x, digit_bits, fraction_bits)
     elif cfg.fix_method == 'nearest':
-        return nearest_resolution(x, cfg.digit_bits, cfg.fraction_bits)
+        return nearest_resolution(x, digit_bits, fraction_bits)
     elif cfg.fix_method == 'stochastic':
-        return stochastic_resolution(x, cfg.digit_bits, cfg.fraction_bits)
+        return stochastic_resolution(x, digit_bits, fraction_bits)
     else:
         return false
