@@ -162,6 +162,7 @@ def routing(self, input, b_IJ):
             elif r_iter < cfg.iter_routing - 1:  # Inner iterations, do not apply backpropagation
                 self.s_J = tf.multiply(self.c_IJ, u_hat_stopped)
                 self.s_J = reduce_sum(self.s_J, axis=1, keepdims=True) + self.biases
+                self.s_J = fix(self.s_J)
                 self.v_J = squash(self.s_J)
                 self.v_J = fix(self.v_J, ss=True)
 
