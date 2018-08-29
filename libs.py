@@ -30,6 +30,10 @@ def _stochastic_resolution_grad(op, grad):
 
 
 def fix(x, ss=False):
+    # not fixing if training
+    if cfg.is_training:
+        return x
+
     if ss:
         digit_bits = cfg.ss_digit_bits
         fraction_bits = cfg.ss_fraction_bits
