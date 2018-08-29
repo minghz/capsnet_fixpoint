@@ -12,7 +12,7 @@ from capsNet import CapsNet
 
 name_appendage = '_d' + str(cfg.digit_bits) + '_f' + str(cfg.fraction_bits) + '_ss_d' + str(cfg.ss_digit_bits) + '_f' + str(cfg.ss_fraction_bits)
 RESULTS_DIR = cfg.results + name_appendage
-LOG_DIR = cfg.logdir + name_appendage
+LOG_DIR = cfg.logdir # + name_appendage
 
 def save_to():
     if not os.path.exists(RESULTS_DIR):
@@ -53,7 +53,8 @@ def prepare_output_dir():
         shutil.rmtree(cfg.checkpoint_dir, cfg.checkpoint_dir + datetime.now().isoformat())
 
     if os.path.exists(LOG_DIR):
-        os.rename(LOG_DIR, LOG_DIR + datetime.now().isoformat())
+        shutil.rmtree(LOG_DIR, LOG_DIR + datetime.now().isoformat())
+        #os.rename(LOG_DIR, LOG_DIR + datetime.now().isoformat())
 
 
 def train(model, session):
